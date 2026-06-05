@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     await DeviceToken.findOneAndUpdate(
       { deviceToken },
       { deviceToken },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
 
     return NextResponse.json({ success: true });
