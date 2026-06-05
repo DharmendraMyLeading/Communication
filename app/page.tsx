@@ -2,35 +2,48 @@
 
 import { useEffect, useState } from "react";
 
+declare global {
+  interface Window {
+    postMessageFromApp: (data: any) => void;
+  }
+}
+
 export default function Home() {
   const [deviceToken, setDeviceToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data) {
-        setDeviceToken(event.data);
-      }
-    };
+  const handler = (event: any) => {
+    const token = event.detail.deviceToken;
 
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
+    console.log('FCM Token:', token);
+
+    setDeviceToken(token);
+
+    localStorage.setItem('deviceToken', token);
+  };
+
+  window.addEventListener('FCM_TOKEN', handler);
+
+  return () => {
+    window.removeEventListener('FCM_TOKEN', handler);
+  };
+}, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black p-8">
       <header className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-zinc-800 dark:text-zinc-100">
+        <h1 className="text-2xl font-semibold">
           This is your Device Token
         </h1>
       </header>
 
-      <div className="w-full max-w-lg rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 p-6">
+      <div className="w-full max-w-lg rounded-xl border p-6">
         {deviceToken ? (
-          <p className="break-all font-mono text-sm text-zinc-700 dark:text-zinc-300">
+          <p className="break-all font-mono text-sm">
             {deviceToken}
           </p>
         ) : (
-          <p className="text-sm text-zinc-400 dark:text-zinc-500 italic">
+          <p className="text-sm italic">
             Waiting for token from app...
           </p>
         )}
