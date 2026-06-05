@@ -12,6 +12,7 @@ export default function Home() {
   const [deviceToken, setDeviceToken] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('Setting up FCM token listener...');
   const handler = (event: any) => {
     const token = event.detail.deviceToken;
 
@@ -23,6 +24,9 @@ export default function Home() {
   };
 
   window.addEventListener('FCM_TOKEN', handler);
+  
+
+  console.log('FCM token listener set up.');
 
   return () => {
     window.removeEventListener('FCM_TOKEN', handler);
