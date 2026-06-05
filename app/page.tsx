@@ -33,9 +33,13 @@ export default function Home() {
     };
 
     if (window?.ReactNativeWebView) {
+      console.log("Sending message to React Native WebView:", message);
       window?.ReactNativeWebView.postMessage(
         JSON.stringify(message)
       );
+
+      console.log("Message sent to React Native WebView");
+
     } else {
       console.log("Not running inside React Native WebView");
     }
