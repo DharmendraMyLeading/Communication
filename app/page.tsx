@@ -73,41 +73,79 @@
 //   );
 // }
 
-
 "use client";
 
 import { useEffect, useState } from "react";
-
-declare global {
-  interface Window {
-    postMessageFromApp: (data: any) => void;
-  }
-}
 
 export default function Home() {
   const [deviceToken, setDeviceToken] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Setting up FCM token listener...');
-  const handler = (event: any) => {
-    const token = event.detail.deviceToken;
+    console.log("[WEB] Page loaded");
+    console.log(
+      "[WEB] Running inside React Native WebView:",
+      !!window.ReactNativeWebView
+    );
 
-    console.log('FCM Token:', token);
+    const handler = async (event: any) => {
+      console.log("[WEB] FCM_TOKEN event received");
+      console.log("[WEB] Full event:", event);
 
-    setDeviceToken(token);
+      const token = event?.detail?.deviceToken;
 
-    localStorage.setItem('deviceToken', token);
-  };
+      console.log("[WEB] Extracted token:", token);
 
-  window.addEventListener('FCM_TOKEN', handler);
-  
+      if (!token) {
+        console.error("[WEB] No token found in event.detail");
+        return;
+      }
 
-  console.log('FCM token listener set up.');
+      setDeviceToken(token);
 
-  return () => {
-    window.removeEventListener('FCM_TOKEN', handler);
-  };
-}, []);
+      try {
+        console.log("[WEB] Calling API...");
+
+        const response = await fetch("/api/save-device-token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            deviceToken: token,
+          }),
+        });
+
+        console.log(
+          "[WEB] API Response Status:",
+          response.status
+        );
+
+        const data = await response.json();
+
+        console.log("[WEB] API Response Data:", data);
+      } catch (error) {
+        console.error(
+          "[WEB] API Call Failed:",
+          error
+        );
+      }
+    };
+
+    console.log("[WEB] Registering FCM_TOKEN listener");
+
+    window.addEventListener("FCM_TOKEN", handler);
+
+    return () => {
+      console.log(
+        "[WEB] Removing FCM_TOKEN listener"
+      );
+
+      window.removeEventListener(
+        "FCM_TOKEN",
+        handler
+      );
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-black p-8">
@@ -131,6 +169,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-
